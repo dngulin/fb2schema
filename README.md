@@ -2,7 +2,7 @@
 
 This repository contains a handwritten xml schema for the FictionBook 2.2 format in the RELAX NG compact syntax.
 
-It was implemented because of the [official repository](https://github.com/gribuser/fb2) contains an outdated schema and the [official site](http://www.fictionbook.org/index.php/XML_%D1%81%D1%85%D0%B5%D0%BC%D0%B0_FictionBook2.2) was down. Also, the official site stil contains dead links to `xsd`-files.
+It was implemented because of the [official repository](https://github.com/gribuser/fb2) contains an outdated schema and the [official website](http://www.fictionbook.org/index.php/XML_%D1%81%D1%85%D0%B5%D0%BC%D0%B0_FictionBook2.2) was down. The official website stil contains dead links to `xsd`-files.
 
 Also the repository contains the reference XSD schema for the FictionBook 2.2 restored with the web-archive searches.
 
