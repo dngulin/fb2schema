@@ -1,0 +1,467 @@
+default namespace = "http://www.gribuser.ru/xml/fictionbook/2.0"
+namespace xlink = "http://www.w3.org/1999/xlink"
+
+# Root
+
+start = element FictionBook { fb }
+
+fb =
+    element stylesheet { stylesheet }*,
+    element description { desc },
+    element body { body },
+    element body { body-notes }?,
+    element binary { binary }*
+
+# Main elements
+
+stylesheet = 
+    xsd:string,
+    attribute type { xsd:string }
+
+desc =
+    element title-info { meta.title-info },
+    element src-title-info { meta.title-info }?,
+    element document-info { meta.doc-info },
+    element publish-info { meta.pub-info }?,
+    element custom-info { meta.field, attribute info-type { xsd:string } }*
+
+body =
+    element image { block.image }?,
+    element title { block.title }?,
+    element epigraph { block.epigraph }*,
+    element section { block.section, attribute id { xsd:ID }? }+,
+    attribute xml:lang { xsd:language }?
+
+body-notes =
+    element section { block.section, attribute id { xsd:ID } }+,
+    attribute name { "notes" },
+    attribute xml:lang { xsd:language }?
+
+binary =
+    xsd:base64Binary,
+    attribute content-type { xsd:string },
+    attribute id { xsd:ID }
+
+# Metadata
+
+meta.title-info = 
+    element genre { enum.genre, attribute match { xsd:integer }? }+,
+    element author { meta.author }+,
+    element book-title { meta.field },
+    element annotation { block.annotation }?,
+    element keywords { meta.field }?,
+    element date { block.date }?,
+    element coverpage { element image { inline.image } }?,
+    element lang { xsd:language }?,
+    element src-lang { xsd:language }?,
+    element translator { meta.author }*,
+    element sequence { meta.series }*
+
+meta.doc-info =
+    element author { meta.author }+,
+    element program-used { meta.field }?,
+    element date { block.date }?,
+    element src-url { xsd:string }*,
+    element src-ocr { meta.field }?,
+    element id { xsd:token },
+    element version { xsd:string },
+    element history { block.annotation }?,
+    element publisher { meta.author }*
+
+meta.pub-info = 
+    element book-name { meta.field }?,
+    element publisher { meta.field }?,
+    element city { meta.field }?,
+    element year { xsd:gYear }?,
+    element isbn { meta.field }?,
+    element sequence { meta.series }*
+
+meta.author = meta.author-formal | meta.author-informal
+
+meta.author-formal =
+    element first-name { meta.field },
+    element middle-name { meta.field }?,
+    element last-name { meta.field },
+    element nickname { meta.field }?,
+    element home-page { xsd:string }*,
+    element email { xsd:string }*,
+    element id { xsd:token }?
+
+meta.author-informal =
+    element nickname { meta.field },
+    element home-page { xsd:string }*,
+    element email { xsd:string }*,
+    element id { xsd:token }?
+
+meta.series =
+    empty,
+    attribute name { xsd:string },
+    attribute number { xsd:integer }?,
+    attribute xml:lang { xsd:language }?
+
+meta.field = xsd:string, attribute xml:lang { xsd:language }?
+
+# Blocks
+
+block.annotation = block.content*
+
+block.image =
+    empty,
+    ref-atrr.image,
+    attribute alt { xsd:string }?,
+    attribute title { xsd:string }?,
+    attribute id { xsd:ID }?
+
+block.title =
+    (
+        element p { block.paragraph } |
+        element empty-line { empty }
+    )*
+
+block.epigraph = 
+    (
+        element p { block.paragraph } |
+        element poem { block.poem } |
+        element cite { block.cite } |
+        element empty-line { empty }
+    )*,
+    element text-author { block.paragraph }*
+
+block.section = 
+    element title { block.title }?,
+    element epigraph { block.epigraph }*,
+    element image { block.image }?,
+    element annoatation { block.annotation }?,
+    (
+        element section { block.section }+ |
+        block.section.content
+    ),
+    attribute xml:lang { xsd:language }?
+
+block.section.content = block.content, block.content-with-images*
+
+block.content =
+    element p { block.paragraph } |
+    element poem { block.poem } |
+    element cite { block.cite } |
+    element subtitle { block.paragraph } |
+    element table { block.table } |
+    element empty-line { empty }
+
+block.content-with-images = block.content | element image { block.image }
+
+block.cite = 
+    (
+        element p { block.paragraph } |
+        element poem { block.poem } |
+        element empty-line { empty } |
+        element subtitle { block.paragraph } |
+        element table { block.table }
+    )*,
+    element text-author { block.paragraph }*,
+    attribute id { xsd:ID }?,
+    attribute xml:lang { xsd:language }?
+
+block.poem = 
+    element title { block.title }?,
+    element epigraph { block.epigraph }*,
+    element stanza { block.poem.stanza }+,
+    element text-author { block.paragraph }*,
+    element date { block.date }?,
+    attribute id { xsd:ID }?,
+    attribute xml:lang { xsd:language }?
+
+block.poem.stanza =
+    element title { block.title }?,
+    element subtitle { block.paragraph }*,
+    element v { block.paragraph }+,
+    attribute xml:lang { xsd:language }?
+
+block.table =
+    element tr { block.table.row }+,
+    attribute id { xsd:ID }?,
+    attribute style { xsd:string }?
+
+block.table.row =
+    (
+        element th { block.table.cell } |
+        element td { block.table.cell }
+    )+,
+    attribute align { enum.align }?
+
+block.table.cell =
+    inline.content,
+    attribute id { xsd:ID }?,
+    attribute style { xsd:string }?,
+    attribute colspan { xsd:integer }?,
+    attribute rowspan { xsd:integer }?,
+    attribute align { enum.align }?,
+    attribute valign { enum.valign }?
+
+block.date = 
+    meta.field,
+    attribute value { xsd:date }?
+
+block.paragraph =
+    inline.content,
+    attribute id { xsd:ID }?,
+    attribute style { xsd:string }?
+
+# Inline
+
+inline.content = 
+    (
+        text |
+        element strong { inline.content } |
+        element emphasis { inline.content } |
+        element strikethrough { inline.content } |
+        element sub { inline.content } |
+        element sup { inline.content } |
+        element code { inline.content } |
+        element image { inline.image } |
+        element style {
+            inline.content,
+            attribute name { xsd:token }
+        } |
+        element a {
+            inline.link-content,
+            ref-atrr.link
+        }
+    )*,
+    attribute xml:lang { xsd:language }?
+
+inline.image =
+    empty,
+    ref-atrr.image,
+    attribute alt { xsd:string }?
+
+inline.link-content =
+    (
+        text |
+        element strong { inline.link-content } |
+        element emphasis { inline.link-content } |
+        element strikethrough { inline.link-content } |
+        element sub { inline.link-content } |
+        element sup { inline.link-content } |
+        element code { inline.link-content } |
+        element image { inline.image } |
+        element style {
+            inline.link-content,
+            attribute name { xsd:token }
+        }
+    )*
+
+# Referencing
+
+ref-atrr.image = ref-atrr.xlink-href-and-type
+
+ref-atrr.link =
+    ref-atrr.xlink-href-and-type,
+    attribute type { "note" }?
+
+ref-atrr.xlink-href-and-type =
+    attribute xlink:href { xsd:string },
+    attribute xlink:type { xsd:string }?
+
+# Enumerations
+
+enum.align = "left" | "center" | "right"
+
+enum.valign = "top" | "middle" | "bottom"
+
+enum.genre = 
+    # FB 2.2 Genres
+    "sf_history" |
+    "sf_action" |
+    "sf_epic" |
+    "sf_heroic" |
+    "sf_detective" |
+    "sf_cyberpunk" |
+    "sf_space" |
+    "sf_social" |
+    "sf_horror" |
+    "sf_humor" |
+    "sf_fantasy" |
+    "sf" |
+    "det_classic" |
+    "det_police" |
+    "det_action" |
+    "det_irony" |
+    "det_history" |
+    "det_espionage" |
+    "det_crime" |
+    "det_political" |
+    "det_maniac" |
+    "det_hard" |
+    "thriller" |
+    "detective" |
+    "prose_classic" |
+    "prose_history" |
+    "prose_contemporary" |
+    "prose_counter" |
+    "prose_rus_classic" |
+    "prose_su_classics" |
+    "love_contemporary" |
+    "love_history" |
+    "love_detective" |
+    "love_short" |
+    "love_erotica" |
+    "adv_western" |
+    "adv_history" |
+    "adv_indian" |
+    "adv_maritime" |
+    "adv_geo" |
+    "adv_animal" |
+    "adventure" |
+    "child_tale" |
+    "child_verse" |
+    "child_prose" |
+    "child_sf" |
+    "child_det" |
+    "child_adv" |
+    "child_education" |
+    "children" |
+    "poetry" |
+    "dramaturgy" |
+    "antique_ant" |
+    "antique_european" |
+    "antique_russian" |
+    "antique_east" |
+    "antique_myths" |
+    "antique" |
+    "sci_history" |
+    "sci_psychology" |
+    "sci_culture" |
+    "sci_religion" |
+    "sci_philosophy" |
+    "sci_politics" |
+    "sci_business" |
+    "sci_juris" |
+    "sci_linguistic" |
+    "sci_medicine" |
+    "sci_phys" |
+    "sci_math" |
+    "sci_chem" |
+    "sci_biology" |
+    "sci_tech" |
+    "science" |
+    "comp_www" |
+    "comp_programming" |
+    "comp_hard" |
+    "comp_soft" |
+    "comp_db" |
+    "comp_osnet" |
+    "computers" |
+    "ref_encyc" |
+    "ref_dict" |
+    "ref_ref" |
+    "ref_guide" |
+    "reference" |
+    "nonf_biography" |
+    "nonf_publicism" |
+    "nonf_criticism" |
+    "nonfiction" |
+    "design" |
+    "religion_rel" |
+    "religion_esoterics" |
+    "religion_self" |
+    "religion" |
+    "humor_anecdote" |
+    "humor_prose" |
+    "humor_verse" |
+    "humor" |
+    "home_cooking" |
+    "home_pets" |
+    "home_crafts" |
+    "home_entertain" |
+    "home_health" |
+    "home_garden" |
+    "home_diy" |
+    "home_sport" |
+    "home_sex" |
+    "home" |
+
+    # FB 2.0 Obsolete Genres
+    "accounting" |
+    "aphorism_quote" |
+    "architecture_book" |
+    "auto_regulations" |
+    "banking" |
+    "beginning_authors" |
+    "cinema_theatre" |
+    "city_fantasy" |
+    "dragon_fantasy" |
+    "economics" |
+    "essays" |
+    "fantasy_fight" |
+    "foreign_action" |
+    "foreign_adventure" |
+    "foreign_antique" |
+    "foreign_business" |
+    "foreign_children" |
+    "foreign_comp" |
+    "foreign_contemporary" |
+    "foreign_contemporary_lit" |
+    "foreign_desc" |
+    "foreign_detective" |
+    "foreign_dramaturgy" |
+    "foreign_edu" |
+    "foreign_fantasy" |
+    "foreign_home" |
+    "foreign_humor" |
+    "foreign_language" |
+    "foreign_love" |
+    "foreign_novel" |
+    "foreign_other" |
+    "foreign_poetry" |
+    "foreign_prose" |
+    "foreign_psychology" |
+    "foreign_publicism" |
+    "foreign_religion" |
+    "foreign_sf" |
+    "geo_guides" |
+    "geography_book" |
+    "global_economy" |
+    "historical_fantasy" |
+    "humor_fantasy" |
+    "industries" |
+    "job_hunting" |
+    "literature_18" |
+    "literature_19" |
+    "literature_20" |
+    "love_fantasy" |
+    "love_sf" |
+    "magician_book" |
+    "management" |
+    "marketing" |
+    "military_special" |
+    "music_dancing" |
+    "narrative" |
+    "newspapers" |
+    "org_behavior" |
+    "paper_work" |
+    "pedagogy_book" |
+    "periodic" |
+    "personal_finance" |
+    "popadanec" |
+    "popular_business" |
+    "prose_military" |
+    "psy_alassic" |
+    "psy_childs" |
+    "psy_generic" |
+    "psy_personal" |
+    "psy_sex_and_family" |
+    "psy_social" |
+    "psy_theraphy" |
+    "real_estate" |
+    "russian_contemporary" |
+    "russian_fantasy" |
+    "short_story" |
+    "sketch" |
+    "small_business" |
+    "sociology_book" |
+    "stock" |
+    "upbringing_book" |
+    "vampire_book" |
+    "visual_arts" |
+    "unrecognised"
